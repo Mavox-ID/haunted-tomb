@@ -1,34 +1,15 @@
-name: Unpack and build
+name: Build APK
 
 on:
   workflow_dispatch:
   push:
     branches: [ main, master ]
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Unpack Taro.zip once
-        run: |
-          if [ -f Taro.zip ]; then
-            mkdir tmp
-            unzip -q -o Taro.zip -x "Taro/.github/*" -d tmp
-            cp -a tmp/Taro/. .
-            rm -rf tmp Taro.zip
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add -A
-            git diff --cached --quiet || git commit -m "Unpack Taro.zip"
-            git push
-          else
-            echo "Taro.zip not found, skipping unpack"
-          fi
 
       - uses: actions/setup-java@v4
         with:

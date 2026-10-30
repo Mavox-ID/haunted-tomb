@@ -1,0 +1,47 @@
+name: Unpack and build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack Taro.zip once
+        run: |
+          if [ -f Taro.zip ]; then
+            mkdir tmp
+            unzip -q -o Taro.zip -x "Taro/.github/*" -d tmp
+            cp -a tmp/Taro/. .
+            rm -rf tmp Taro.zip
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git diff --cached --quiet || git commit -m "Unpack Taro.zip"
+            git push
+          else
+            echo "Taro.zip not found, skipping unpack"
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
+
+      - run: gradle assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Taro-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
